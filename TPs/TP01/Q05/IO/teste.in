@@ -1,0 +1,8 @@
+3 0 0 1 or(or(A , B) , C) 
+3 0 1 0 or(or(A , B) , C) 
+3 0 1 1 or(or(A , B) , C) 
+3 1 0 0 or(or(A , B) , C) 
+3 1 0 1 or(or(A , B) , C) 
+3 1 1 0 or(or(A , B) , C) 
+3 1 1 1 or(or(A , B) , C)
+0
