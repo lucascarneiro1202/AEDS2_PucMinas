@@ -131,7 +131,7 @@ public class Pokemon {
     return new Pokemon (this.getId(), this.getGeneration(), this.getName(), this.getDescription(), this.getTypes(), this.getAbilities(), this.getWeight(), this.getHeight(), this.getCaptureRate(), this.getIsLegendary(), this.getCaptureDate());
   }
 
-//-------------------------- Definir metodo de imprimir --------------------------
+//-------------------------- Definir metodo de print --------------------------
 
   public String arrayListToString(ArrayList<String> list)
   {
@@ -155,7 +155,7 @@ public class Pokemon {
     return strResult.toString();
   }
 
-  public void imprimir ()
+  public void print ()
   {
   //Definir dados locais
     String strTypes = arrayListToString ( getTypes() );
@@ -363,7 +363,7 @@ public class Pokemon {
       int id = Integer.parseInt(line);
     //Ler pokemon do determinado id
       pk.read(id, allContent);
-      pk.imprimir();
+      pk.print();
     //Ler proxima linha
       line = MyIO.readLine();
     }
