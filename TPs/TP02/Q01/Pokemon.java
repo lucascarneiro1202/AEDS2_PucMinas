@@ -1,3 +1,4 @@
+import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
@@ -8,6 +9,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Pokemon {
+  public static Scanner sc = new Scanner (System.in);
+
 //-------------------------- Definir atributos privados --------------------------
 
   private int id;
@@ -163,7 +166,7 @@ public class Pokemon {
     DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
     String data = df.format( getCaptureDate() );
   //Mostrar resultado final
-    MyIO.println("[#" + getId() + " -> " + getName() + ": " + getDescription() + " - " + strTypes + " - " + strAbilities +" - " + String.format("%.1f", getWeight()) + "kg - " + getHeight() + "m - " + getCaptureRate() +"% - " + getIsLegendary() + " - " + getGeneration() + " gen] - " + data);
+    System.out.println("[#" + getId() + " -> " + getName() + ": " + getDescription() + " - " + strTypes + " - " + strAbilities +" - " + String.format("%.1f", getWeight()) + "kg - " + getHeight() + "m - " + getCaptureRate() +"% - " + getIsLegendary() + " - " + getGeneration() + " gen] - " + data);
   }
 
 //-------------------------- Definir metodo de ler de arquivo --------------------------
@@ -345,16 +348,16 @@ public class Pokemon {
   //Atribuir dados
     assignValues(values, abilities);
   }
+
 //-------------------------- Definir Main --------------------------
 
   public static void main (String args[])
   {
   //Definir dados locais
-    MyIO.setCharset("UTF-8");
     String allContent = readAll();
     String line;
   //Ler primeira linha
-    line = MyIO.readLine();
+    line = sc.nextLine();
   //Laco de repeticao
     while ( ! line.equals("FIM") )
     {
@@ -365,7 +368,7 @@ public class Pokemon {
       pk.read(id, allContent);
       pk.print();
     //Ler proxima linha
-      line = MyIO.readLine();
+      line = sc.nextLine();
     }
   }
 }

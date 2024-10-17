@@ -561,6 +561,29 @@ Pokemon * new_Pokemon ()
   return pokemon;
 }
 
+// Pokemon * Pokemon_clone(Pokemon * pokemon)
+// {
+// //Testar apontador
+//   if (pokemon == NULL)
+//     return NULL;
+// //Definir novo apontador
+//   Pokemon * novoPokemon = new_Pokemon();
+//   if (novoPokemon == NULL)
+//     return NULL;
+// //Atribuir valores
+//   novoPokemon->id = pokemon->id;
+//   novoPokemon->generation = pokemon->generation;
+//   novoPokemon->name = strdup(pokemon->name);
+//   novoPokemon->description = strdup(pokemon->description);
+//   memcpy (novoPokemon->types, pokemon->types, sizeof(ArrayList));
+//   memcpy (novoPokemon->abilities, pokemon->abilities, sizeof(ArrayList));
+//   novoPokemon->weight = pokemon->weight;
+//   novoPokemon->height = pokemon->height;
+//   novoPokemon->captureRate = pokemon->captureRate;
+//   novoPokemon->isLegendary = pokemon->isLegendary;
+//   memcpy (novoPokemon->captureDate, pokemon->captureDate, sizeof(Date));
+// }
+
 void Pokemon_assignValues (Pokemon * pokemon, char ** values, char ** abilities)
 {
 //Testar condicoes iniciais
