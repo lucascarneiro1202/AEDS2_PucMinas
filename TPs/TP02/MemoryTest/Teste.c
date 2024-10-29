@@ -9,7 +9,7 @@
 #define MAX_TAM_LINE_MAIOR 200
 #define MAX_TAM_LINE_MENOR 50
 #define MAX_TAM_VALUES 12
-#define MAX_TAM_ARRAYLIST 7
+#define MAX_TAM_ARRAYLIST 8
 
 /* --------------------------- DADOS PARA CALCULAR COMPLEXIDADE --------------------------- */
 
@@ -302,13 +302,11 @@ bool ArrayList_add (ArrayList * a, char * s)
   if (a == NULL || a->length == a->size || strlen(s) > MAX_TAM_LINE_MENOR)
     return false;
 //Adicionar novo elemento
-  if (a->content[a->length] != NULL) {  free(a->content[a->length]); a->content[a->length] = NULL;  }
-  //free(a->content[a->length]);
-  printf("s: %s (%d/%d)\n", s, a->length, a->size);
-  strcpy(a->content[a->length], s);
-  printf("s2: %s\n", a->content[a->length]);
-  //a->content[a->length] = strdup(s);
-  //if (a->content[a->length] == NULL) return false; 
+  //if (a->content[a->length] != NULL) {  free(a->content[a->length]); a->content[a->length] = NULL;  }
+  free(a->content[a->length]);
+  //printf("s = %s (%d)\n", s, strlen(s));
+  //strcpy(a->content[a->length], s);
+  a->content[a->length] = strdup(s);
 //Aumentar o tamanho atual do objeto
   a->length++;
 //Retornar
@@ -709,22 +707,26 @@ void Pokemon_print(Pokemon * pokemon)
   char format [] = "[#%d -> %s: %s - %s - %s - %skg - %sm - %d %% - %s - %d gen] %s\n";
 //Definir types e abilities
   char * types = ArrayList_toString( pokemon->types );
+  if (types == NULL) return;
   char * abilities = ArrayList_toString( pokemon->abilities );
+  if (abilities == NULL) {  free(types); return;  }
 //Definir weight
-  char * weight = calloc(6, sizeof(char));
-  if (weight == NULL)
-    return;
+  char * weight = calloc(6, sizeof(char)); if (weight == NULL) {  free(types); free(abilities); return;  }
   snprintf(weight, 6, "%.1lf", pokemon->weight);
 //Definir height
   char * height = calloc(6, sizeof(char));
-  if (height == NULL)
-  {   free(weight); return;   }
+  if (height == NULL) {  free(types); free(abilities); free(weight); return; }
   snprintf(height, 6, "%.1lf", pokemon->height);
+//Definir captureDate
+  char * captureDate = Date_format( pokemon->captureDate );
 //Mostrar pokemon
-  printf( "[#%d -> %s: %s - %s - %s - %skg - %sm - %d%% - %s - %d gen] - %s\n", pokemon->id, pokemon->name, pokemon->description, types, abilities, weight, height, pokemon->captureRate, (pokemon->isLegendary) ? "true" : "false", pokemon->generation, Date_format( pokemon->captureDate ) );
+  printf( "[#%d -> %s: %s - %s - %s - %skg - %sm - %d%% - %s - %d gen] - %s\n", pokemon->id, pokemon->name, pokemon->description, types, abilities, weight, height, pokemon->captureRate, (pokemon->isLegendary) ? "true" : "false", pokemon->generation, captureDate );
 //Desalocar memoria
+  free(types);
+  free(abilities);
   free(weight);
   free(height);
+  free(captureDate);
 }
 
 /* --------------------------- DEFINIR ARRAY DE POKEMON E SEUS METODOS --------------------------- */
@@ -941,12 +943,6 @@ void heapSort (ArrayPokemon * array)
 
 int main ()
 {
-  ArrayList * a1 = new_ArrayList();
-  ArrayList_add(a1, "Teste");
-  //ArrayList * a2 = ArrayList_clone(a2);
-  //free_ArrayList(a2);
-  free_ArrayList(a1);
-/*
 //Definir constante parcial
   int k = 10;
 //Definir dados da leitura de arquivo
@@ -972,6 +968,7 @@ int main ()
       int id = atoi(line);
     //Chamar metodos de leitura
       Pokemon_read(pokemon, id, allLines);
+      Pokemon_print(pokemon);
     //Adicionar ao arranjo
       ArrayPokemon_add(array, pokemon);
     //Desalocar memoria
@@ -981,21 +978,6 @@ int main ()
     free(line);
     line = readLine();
   }
-//Ler novos dados
-  free(line);
-  line = readLine();
-//Ordenar pokemons
-  inicio = currentTimeMillis();
-  heapSort(array);
-  fim = currentTimeMillis();
-//Mostrar resposta
-  for (int i = 0; i < k; i++)
-    Pokemon_print( array->pks[i] );
-//Escrever arquivo de resposta
-  FILE * file = fopen ("857340_heapsort.txt", "wt");
-  if (file != NULL)
-    fprintf(file, "857340\t%lld\t%d\t%d", (fim - inicio), comparacoes, movimentacoes);
-  fclose(file);
 //Desalocar memorias
   free_ArrayPokemon(array);
   free(line);
@@ -1003,7 +985,6 @@ int main ()
   for (int i = 0; i < MAX_TAM_NUM_LINES; i++)
     free(allLines[i]);
   free(allLines); 
-*/
 //Retornar
   return 0;
 }
