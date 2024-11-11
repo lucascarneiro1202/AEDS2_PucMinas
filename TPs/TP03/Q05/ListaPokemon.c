@@ -727,156 +727,225 @@ void Pokemon_print(Pokemon * pokemon)
 
 /* --------------------------- DEFINIR LISTA DE POKEMON E SEUS METODOS --------------------------- */
 
-typedef struct {
-  int size;
-  int length;
-  Pokemon ** pks;
-} ListaPokemon;
+typedef struct Celula {
+  Pokemon * pokemon;
+  struct Celula * prox;
+} Celula;
 
-ListaPokemon * new_ListaPokemon (int n) {
+Celula * new_CelulaVazia () {
 //Definir objeto
-  ListaPokemon * lista = malloc (1 * sizeof(ListaPokemon));
-  if (lista == NULL)  return NULL;
-//Definir arranjo de pokemons
-  Pokemon ** pks = malloc (n * sizeof(Pokemon *));
-  if (pks == NULL)  {  free(lista); return NULL;  }
-//Definir cada pokemon
-  for (int i = 0; i < n; i++) pks[i] = NULL;
-  /*
-  for (int i = 0; i < n; i++) {
-    pks[i] = new_Pokemon();
-    if (pks[i] == NULL) {
-      for (int j = 0; j < i; j++) free_Pokemon(pks[j]);
-      free(pks);
-      free(lista);
-      return NULL;
-    }
-  }
-  */
+  Celula * celula = malloc (1 * sizeof(Celula));
+  if (celula == NULL) return NULL;
 //Definir dados iniciais
-  lista->pks = pks;
-  lista->size = n;
+  celula->pokemon = NULL;
+  celula->prox = NULL;
+//Retornar
+  return celula;
+}
+
+Celula * new_Celula (Pokemon * pokemon) {
+//Definir objeto
+  Celula * celula = malloc (1 * sizeof(Celula));
+  if (celula == NULL) return NULL;
+//Definir dados iniciais
+  celula->pokemon = Pokemon_clone(pokemon);
+  celula->prox = NULL;
+//Retornar
+  return celula;
+}
+
+void free_Celula (Celula * celula) {
+//Testar ponteiro
+  if (celula == NULL) return;
+//Desalocar memoria
+  if (celula->pokemon != NULL) free_Pokemon(celula->pokemon);
+  celula->prox = NULL;
+  free(celula);
+}
+
+typedef struct {
+  Celula * primeiro;
+  Celula * ultimo;
+  int length;
+} Lista;
+
+Lista * new_Lista () {
+//Definir objeto
+  Lista * lista = malloc (1 * sizeof(Lista));
+  if (lista == NULL)  return NULL;
+//Definir dados iniciais
+  lista->primeiro = new_CelulaVazia();
+  if (lista->primeiro == NULL) {  free(lista);  return NULL;  }
+  lista->ultimo = lista->primeiro;
   lista->length = 0;
 //Retornar
   return lista;
 }
 
-void free_ListaPokemon (ListaPokemon * lista) {
+void free_Lista (Lista * lista) {
 //Testar ponteiro
-  if (lista == NULL || lista->pks == NULL) return;
+  if (lista == NULL) return;
 //Desalocar memoria
-  for (int i = 0; i < lista->length; i++) if (lista->pks[i] != NULL) free_Pokemon(lista->pks[i]);
-  free(lista->pks);
+  Celula * i = lista->primeiro;
+  Celula * j = i;
+  while (j != NULL) {
+    j = j->prox;
+    free_Celula(i);
+    i = j;
+  }
   free(lista);
 }
 
-void inserirInicio (ListaPokemon * lista, Pokemon * pokemon) {
+void inserirInicio (Lista * lista, Pokemon * pokemon) {
 //Testar lista
   if (lista == NULL)
   {    printf("[ERRO]: Lista invalida.\n"); return;   }
 //Testar pokemon a ser inserido
   if (pokemon == NULL)
   {    printf("[ERRO]: Pokemon invalido.\n"); return;   }
-//Testar se ha espaco
-  if (lista->length >= lista->size)
-  {    printf("[ERRO]: Lista cheia.\n"); return;    }
-//Fazer o shift da lista para a direita
-  for (int i = lista->length; i > 0; i--)
-    lista->pks[i] = lista->pks[i - 1];
-//Inserir novo elemento no inicio
-  //if (lista->pks[0] != NULL) free_Pokemon(lista->pks[0]); 
-  lista->pks[0] = Pokemon_clone(pokemon);
+//Definir nova celula
+  Celula * novaCelula = new_Celula(pokemon);
+//Definir logica de ponteiros
+  novaCelula->prox = lista->primeiro->prox;
+  lista->primeiro->prox = novaCelula;
+  if (lista->primeiro == lista->ultimo) lista->ultimo = novaCelula;
+  novaCelula = NULL;
+//Aumentar o tamanho
   lista->length++;
 }
 
-void inserir (ListaPokemon * lista, Pokemon * pokemon, int posicao) {
+void inserirFim (Lista * lista, Pokemon * pokemon) {
 //Testar lista
   if (lista == NULL)
   {    printf("[ERRO]: Lista invalida.\n"); return;   }
 //Testar pokemon a ser inserido
   if (pokemon == NULL)
   {    printf("[ERRO]: Pokemon invalido.\n"); return;   }
-//Testar se ha espaco
-  if (lista->length >= lista->size)
-  {    printf("[ERRO]: Lista cheia.\n"); return;    }
+//Definir nova celula
+  Celula * novaCelula = new_Celula(pokemon);
+//Definir logica de ponteiros
+  lista->ultimo->prox = novaCelula;
+  lista->ultimo = novaCelula;
+//Aumentar o tamanho
+  lista->length++;
+}
+
+void inserir (Lista * lista, Pokemon * pokemon, int posicao) {
+//Testar lista
+  if (lista == NULL)
+  {    printf("[ERRO]: Lista invalida.\n"); return;   }
+//Testar pokemon a ser inserido
+  if (pokemon == NULL)
+  {   printf("[ERRO]: Pokemon invalido.\n"); return;   }
+//Testar posicao
+  if (posicao < 0 || posicao > lista->length)
+  {   printf("[ERRO]: Posicao invalida.\n"); return;   }
+//Testar se e' inserir no inicio
+  if (posicao == 0) 
+  {   inserirInicio(lista, pokemon);    }
+//Testar se e' inserir no fim
+  else if (posicao == lista->length)
+  {   inserirFim(lista, pokemon);   }
+//Qualquer outra posicao
+  else {
+  //Definir nova celula
+    Celula * novaCelula = new_Celula(pokemon);
+  //Definir logica de ponteiros
+    Celula * cel = lista->primeiro;
+    for (int i = 0; i < posicao; cel = cel->prox, i++);
+    Celula * tmp = cel->prox;
+    cel->prox = novaCelula;
+    novaCelula->prox = tmp;
+  //Aumentar o tamanho
+    lista->length++;
+  }
+}
+
+Pokemon * removerInicio (Lista * lista) {
+//Testar lista
+  if (lista == NULL)
+  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
+//Testar se ha' elementos
+  if (lista->length <= 0)
+  {    printf("[ERRO]: Lista vazia.\n"); return NULL;    }
+//Separar elemento a ser removido
+  Celula * celula = lista->primeiro->prox;
+//Logica de ponteiros
+  lista->primeiro->prox = celula->prox;
+//Diminuir o tamanho
+  lista->length--;
+//Desalocar memoria
+  Pokemon * pokemon = Pokemon_clone(celula->pokemon);
+  free_Celula(celula);
+//Retornar
+  return pokemon;
+}
+
+Pokemon * removerFim (Lista * lista) {
+//Testar lista
+  if (lista == NULL)
+  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
+//Testar se ha' elementos
+  if (lista->length <= 0)
+  {    printf("[ERRO]: Lista vazia.\n"); return NULL;    }
+//Separar elemento a ser removido
+  Celula * celula = lista->ultimo;
+//Logica de ponteiros
+  Celula * i;
+  for (i = lista->primeiro; i->prox != lista->ultimo; i = i->prox);
+  lista->ultimo = i;
+//Diminuir o tamanho
+  lista->length--;
+//Desalocar memoria
+  Pokemon * pokemon = Pokemon_clone(celula->pokemon);
+  free_Celula(celula);
+  i = lista->ultimo->prox = NULL;
+//Retornar
+  return pokemon;
+}
+
+Pokemon * remover (Lista * lista, int posicao) {
+//Definir dados locais
+  Pokemon * pokemon = NULL;
+//Testar lista
+  if (lista == NULL)
+  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
+//Testar se ha' elementos
+  if (lista->length <= 0)
+  {    printf("[ERRO]: Lista vazia.\n"); return NULL;    }
 //Testar posicao
   if (posicao < 0 || posicao >= lista->length)
-  {    printf("[ERRO]: Posicao invalida.\n"); return;   }
-//Fazer shift da lista para a direita ate a posicao
-  for (int i = lista->length; i > posicao; i--)
-    lista->pks[i] = lista->pks[i - 1];
-//Inserir novo elemento na posicao
-  //if (lista->pks[posicao] != NULL) free_Pokemon(lista->pks[posicao]);
-  lista->pks[posicao] = Pokemon_clone(pokemon);
-  lista->length++;
-}
-
-void inserirFim (ListaPokemon * lista, Pokemon * pokemon) {
-//Testar lista
-  if (lista == NULL)
-  {    printf("[ERRO]: Lista invalida.\n"); return;   }
-//Testar pokemon a ser inserido
-  if (pokemon == NULL)
-  {    printf("[ERRO]: Pokemon invalido.\n"); return;   }
-//Testar se ha espaco
-  if (lista->length >= lista->size)
-  {    printf("[ERRO]: Lista cheia.\n"); return;    }
-//Inserir novo pokemon no fim
-  //if (lista->pks[lista->length] != NULL) free_Pokemon(lista->pks[lista->length]);
-  lista->pks[lista->length] = Pokemon_clone(pokemon);
-  lista->length++;
-}
-
-Pokemon * removerInicio (ListaPokemon * lista) {
-//Testar lista
-  if (lista == NULL)
-  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
-//Testar se ha' elementos
-  if (lista->length <= 0)
-  {    printf("[ERRO]: Lista vazia.\n"); return NULL;    }
-//Separar elemento a ser removido
-  Pokemon * pokemon = Pokemon_clone(lista->pks[0]);
-  free_Pokemon(lista->pks[0]);
-//Shift dos elementos para a esquerda
-  for (int i = 0; i < lista->length; i++)
-    lista->pks[i] = lista->pks[i + 1];
-  lista->length--;
+  {    printf("[ERRO]: Posicao invalida.\n"); return NULL;   }
+//Testar se e' remover no inicio
+  if (posicao == 0) 
+  {   pokemon = removerInicio(lista);    }
+//Testar se e' remover no fim
+  else if (posicao == lista->length)
+  {   pokemon = removerFim(lista);   }
+//Qualquer outra posicao
+  else {
+  //Definir logica de ponteiros
+    Celula * tmp = lista->primeiro;
+    int i;
+    for (i = 0; i < posicao; i++, tmp = tmp->prox);
+    Celula * removida = tmp->prox;
+    tmp->prox = tmp->prox->prox;
+    pokemon = Pokemon_clone(removida->pokemon);
+  //Diminuir o tamanho
+    lista->length--;
+  }
 //Retornar
   return pokemon;
 }
 
-Pokemon * remover (ListaPokemon * lista, int posicao) {
-//Testar lista
-  if (lista == NULL)
-  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
-//Testar se ha' elementos
-  if (lista->length <= 0)
-  {    printf("[ERRO]: Liste vazia.\n"); return NULL;    }
-//Separar elemento a ser removido
-  Pokemon * pokemon = Pokemon_clone(lista->pks[posicao]);
-  free_Pokemon(lista->pks[posicao]);
-//Shift dos elementos para a esquerda
-  for (int i = posicao; i < lista->length; i++)
-    lista->pks[i] = lista->pks[i + 1];
-  lista->length--;
-//Retornar
-  return pokemon;
-}
-
-Pokemon * removerFim (ListaPokemon * lista) {
-//Testar lista
-  if (lista == NULL)
-  {    printf("[ERRO]: Lista invalida.\n"); return NULL;   }
-//Testar se ha' elementos
-  if (lista->length <= 0)
-  {    printf("[ERRO]: Lista vazia.\n"); return NULL;    }
-//Separar elemento a ser removido
-  Pokemon * pokemon = Pokemon_clone(lista->pks[lista->length - 1]);
-  free_Pokemon(lista->pks[lista->length - 1]);
-//Diminuir tamanho
-  lista->length--;
-//Retornar
-  return pokemon;
+void mostrarLista (Lista * lista) {
+  int i = 0;
+  while (lista->length > 0) {
+    Pokemon * pokemon = removerInicio(lista);
+    printf("[%d] ", i++);
+    Pokemon_print(pokemon);
+    free_Pokemon(pokemon);
+  }
 }
 
 /* --------------------------- DEFINIR MAIN --------------------------- */
@@ -888,14 +957,10 @@ int main () {
   char ** allLines = split(allContent, '\n', MAX_TAM_NUM_LINES, MAX_TAM_LINE_MAIOR); 
   if (allLines == NULL) {  free(allContent); return 1;  }
 //Definir arranjo de pokemon
-  ListaPokemon * lista = new_ListaPokemon(100);
+  Lista * lista = new_Lista();
   if (lista == NULL) return -1;
-  ListaPokemon * removidos = new_ListaPokemon(100);
-  if (removidos == NULL) return -1;
 //Definir dados da leitura da entrada padrao
   char * line = readLine();
-//Definir dados de tempo
-  long long inicio, fim;
 //Laco de repeticao
   while (line != NULL && !equals(line, "FIM")) {
   //Testar se string e' um numero
@@ -915,7 +980,7 @@ int main () {
     line = readLine();
   }
 //Definir dados de comandos
-  char * comando = calloc(100, sizeof(char));
+  char * comando = calloc(10, sizeof(char));
   if (comando == NULL) return -1;
   int i = 0, id = 0, posicao = 0, k;
   scanf("%d", &k);
@@ -934,65 +999,43 @@ int main () {
     Pokemon_read(pokemon, id, allLines);
   //Testar o comando (Inserir/Remover)
     if (comando[0] == 'I') {
-      if (comando[1] == 'I') 
+      if (comando[1] == 'I') {
         inserirInicio(lista, pokemon);
-      else {
-        if (comando[1] == '*') 
-          inserir(lista, pokemon, posicao);
-        else {
-          if (comando[1] == 'F') 
-            inserirFim(lista, pokemon);
-        }
+      } else if (comando[1] == '*') {
+        inserir(lista, pokemon, posicao);
+      } else if (comando[1] == 'F') {
+        inserirFim(lista, pokemon);
       }
-    } else {
-      if (comando[0] == 'R' ) {
-        if (comando[1] == 'I') {
-          Pokemon * tmp = removerInicio(lista);
-          inserirFim(removidos, tmp);
-          free_Pokemon(tmp);
-        } else {
-          if (comando[1] == '*') {
-            Pokemon * tmp = remover(lista, posicao);
-            inserirFim(removidos, tmp);
-            free_Pokemon(tmp);
-          } else {
-            if (comando[1] == 'F') {
-              Pokemon * tmp = removerFim(lista);
-              inserirFim(removidos, tmp);
-              free_Pokemon(tmp);
-            }       
-          }
-        }
-      }
+    } else if (comando[0] == 'R' ) {
+      if (comando[1] == 'I') {
+        Pokemon * tmp = removerInicio(lista);
+        printf("(R) %s\n", tmp->name);
+        free_Pokemon(tmp);
+      } else if (comando[1] == '*') {
+        Pokemon * tmp = remover(lista, posicao);
+        printf("(R) %s\n", tmp->name);
+        free_Pokemon(tmp);
+      } else if (comando[1] == 'F') {
+        Pokemon * tmp = removerFim(lista);
+        printf("(R) %s\n", tmp->name);
+        free_Pokemon(tmp);
+      }       
     }
   //Desalocar memoria
     free_Pokemon(pokemon);
   //Variacao
     i++;
   }
-//Mostrar os removidos
-  while (removidos->length > 0) {
-    Pokemon * pokemon = removerInicio(removidos);
-    printf("(R) %s\n", pokemon->name);
-    free_Pokemon(pokemon);
-  }
 //Mostrar a lista resultante
-  i = 0;
-  while (lista->length > 0) {
-    Pokemon * pokemon = removerInicio(lista);
-    printf("[%d] ", i++);
-    Pokemon_print(pokemon);
-    free_Pokemon(pokemon);
-  }
+  mostrarLista(lista);
 //Desalocar memorias
-  free_ListaPokemon(lista);
-  free_ListaPokemon(removidos);
   free(line);
   free(allContent);
   for (int i = 0; i < MAX_TAM_NUM_LINES; i++)
     free(allLines[i]);
   free(allLines); 
   free(comando);
+  free_Lista(lista);
 //Retornar
   return 0;
 }
